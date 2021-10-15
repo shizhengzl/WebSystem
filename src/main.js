@@ -15,6 +15,13 @@ import router from './router'
 import '@/icons' // icon
 import '@/permission' // permission control
 
+import 'vx-easyui/dist/themes/default/easyui.css';
+import 'vx-easyui/dist/themes/icon.css';
+import 'vx-easyui/dist/themes/vue.css';
+import EasyUI from 'vx-easyui';
+Vue.use(EasyUI);
+
+
 /**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api
@@ -34,6 +41,41 @@ Vue.use(ElementUI, { locale })
 // Vue.use(ElementUI)
 
 Vue.config.productionTip = false
+
+
+
+
+Vue.component('remote-script', {
+  render: function (createElement) {
+    var self = this;
+    return createElement('script', {
+      attrs: {
+        type: 'text/javascript',
+        src: this.src
+      },
+      on: {
+        load: function (event) {
+          self.$emit('load', event);
+        },
+        error: function (event) {
+          self.$emit('error', event);
+        },
+        readystatechange: function (event) {
+          if (this.readyState == 'complete') {
+            self.$emit('load', event);
+          }
+        }
+      }
+    });
+  },
+  props: {
+    src: {
+      type: String,
+      required: true
+    }
+  }
+});
+
 
 new Vue({
   el: '#app',
