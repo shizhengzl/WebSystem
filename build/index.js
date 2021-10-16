@@ -22,7 +22,7 @@ if (process.env.npm_config_preview || rawArgv.includes('--preview')) {
       index: ['index.html', '/']
     })
   )
-
+   
   app.listen(port, function () {
     console.log(chalk.green(`> Preview at  http://localhost:${port}${publicPath}`))
     if (report) {
