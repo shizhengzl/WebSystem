@@ -7,10 +7,8 @@
     "\\src\\components\\Hamburger",
     "\\src\\components\\SvgIcon",
     "\\src\\layout",
-    "\\src\\layout\\components\\Sidebar",
     "\\src\\views",
     "\\src\\views\\tree"
   ],
-  "SelectedNode": "\\src\\router\\index.js",
   "PreviewInSolutionExplorer": false
 }
