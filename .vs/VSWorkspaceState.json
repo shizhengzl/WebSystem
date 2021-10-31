@@ -2,13 +2,11 @@
   "ExpandedNodes": [
     "",
     "\\src",
-    "\\src\\components",
-    "\\src\\components\\Breadcrumb",
-    "\\src\\components\\Hamburger",
-    "\\src\\components\\SvgIcon",
-    "\\src\\layout",
+    "\\src\\api",
+    "\\src\\store",
+    "\\src\\store\\modules",
     "\\src\\views",
-    "\\src\\views\\tree"
+    "\\src\\views\\menus"
   ],
   "PreviewInSolutionExplorer": false
 }

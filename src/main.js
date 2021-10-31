@@ -15,11 +15,11 @@ import router from './router'
 import '@/icons' // icon
 import '@/permission' // permission control
 
-import 'vx-easyui/dist/themes/default/easyui.css';
-import 'vx-easyui/dist/themes/icon.css';
-import 'vx-easyui/dist/themes/vue.css';
-import EasyUI from 'vx-easyui';
-Vue.use(EasyUI);
+//import 'vx-easyui/dist/themes/default/easyui.css';
+//import 'vx-easyui/dist/themes/icon.css';
+//import 'vx-easyui/dist/themes/vue.css';
+//import EasyUI from 'vx-easyui';
+//Vue.use(EasyUI);
 
 
 /**
@@ -75,6 +75,9 @@ Vue.component('remote-script', {
     }
   }
 });
+
+//import ElTreeGrid from 'element-tree-grid'
+//Vue.component(ElTreeGrid.name, ElTreeGrid)
 
 
 new Vue({
