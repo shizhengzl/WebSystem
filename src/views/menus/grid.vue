@@ -12,7 +12,7 @@
     </div>
 
 
-    <el-table :data="data" border max-height="800">
+    <el-table :data="data">
 
       <el-table-column type="selection"
                        width="55">
@@ -23,14 +23,14 @@
                          :prop="item.columnName"
                          :label="item.columnDescription || item.columnName"
                          :formatter="boolformat"
-                         sortable
-                         width="150">
+                         :width="item.columnWidth"
+                         sortable>
         </el-table-column>
         <el-table-column v-else
                          :prop="item.columnName"
                          :label="item.columnDescription || item.columnName"
                          sortable
-                         width="150">
+                         :width="item.columnWidth">
         </el-table-column>
 
         <el-table-column label="操作" v-if="index == header.length-1">
@@ -44,15 +44,35 @@
 
     </el-table>
 
+
+
+
+    <el-pagination @size-change="handleSizeChange"
+                   @current-change="handleCurrentChange"
+                   :current-page="request.PageIndex" 
+                   :page-sizes="[5, 10, 20, 40]"
+                   :page-size="request.PageSize"
+                   layout="total, sizes, prev, pager, next, jumper"
+                   :total="request.TotalCount">
+    </el-pagination>
+
+
+
     <el-dialog :title="title" :visible.sync="formdialog" :close-on-click-modal="false" :close-on-press-escape="false" @close="reset">
       <el-form id="#create" ref="create" :model="model" :rules="rules" label-width="130px">
         <template v-for="(item,index) in header">
-          <el-form-item v-if="item.csharpType == 'String' " 
+          <el-form-item v-if="item.csharpType == 'String' "
                         :label="item.columnDescription || item.columnName" :prop="item.columnName">
             <el-input v-model="model[item.columnName]"
                       clearable></el-input>
           </el-form-item>
-           
+
+          <el-form-item v-if="item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64' "
+                        :label="item.columnDescription || item.columnName" :prop="item.columnName">
+            <el-input v-model="model[item.columnName]" typeof="number"
+                      clearable></el-input>
+          </el-form-item>
+
 
           <el-form-item v-else-if="item.csharpType == 'Boolean'" :label="item.columnDescription || item.columnName">
             <el-radio-group v-model="model[item.columnName]">
@@ -105,11 +125,14 @@
             "Filters": [
               {
                 "Field": "TableName",
-                "Value": "Menus",
+                "Value": "ShowColumns",
                 "Operator": "Equals"
               }
             ]
           },
+          PageSize:5,
+          PageIndex: 1,
+          TotalCount: 0,
           Sort:'Id'
         }
       }
@@ -132,7 +155,9 @@
           Model : owner.model
         } 
         Modify(saverequest).then(response => {
-          debugger
+          if(response.success)
+            this.formdialog = false;
+          this.getHeader();
           //owner.header = response.data
         })
       },
@@ -147,7 +172,9 @@
         const owner = this
         owner.request.Model = JSON.stringify(owner.request.Model);
         GetList(owner.request).then(response => {
-          owner.data = JSON.parse(response.data)
+        
+          owner.request.TotalCount = response.TotalCount
+          owner.data = (response.data) 
         })
       },
 
@@ -157,7 +184,16 @@
 
       showcolumn: function (row) {
         row.path
-      }
+      },
+
+      handleSizeChange: function (size) {
+        this.request.PageSize = size;
+        this.getList();
+      },
+      handleCurrentChange: function (currentPage) {
+        this.request.PageIndex = currentPage;
+        this.getList();
+      },
     }
   }
 </script>
