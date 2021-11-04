@@ -3,19 +3,14 @@
   <div class="app-container">
     <div style="margin-bottom:5px;">
       <el-button type="success" icon="el-icon-circle-plus-outline" @click="create()">添加</el-button>
-      <el-button type="primary" icon="el-icon-circle-plus-outline" @click="modify(scope.row)">修改</el-button>
-      <el-button type="primary" icon="el-icon-circle-plus-outline" @click="create(scope.row)">删除</el-button>
       <el-input v-model="filter"
                 placeholder="请输入内容"
                 style="width:220px;margin-left:5px;"
                 prefix-icon="el-icon-search" />
-    </div>
-
+    </div> 
 
     <el-table :data="data">
-
-      <el-table-column type="selection"
-                       width="55">
+      <el-table-column type="selection"  width="55">
       </el-table-column>
 
       <template v-for="(item,index) in header">
@@ -39,13 +34,8 @@
             <el-button type="danger" size="small" @click="modify(scope.row)">删除</el-button>
           </template>
         </el-table-column>
-
       </template>
-
     </el-table>
-
-
-
 
     <el-pagination @size-change="handleSizeChange"
                    @current-change="handleCurrentChange"
@@ -54,9 +44,7 @@
                    :page-size="request.PageSize"
                    layout="total, sizes, prev, pager, next, jumper"
                    :total="request.TotalCount">
-    </el-pagination>
-
-
+    </el-pagination> 
 
     <el-dialog :title="title" :visible.sync="formdialog" :close-on-click-modal="false" :close-on-press-escape="false" @close="reset">
       <el-form id="#create" ref="create" :model="model" :rules="rules" label-width="130px">
@@ -172,9 +160,9 @@
         const owner = this
         owner.request.Model = JSON.stringify(owner.request.Model);
         GetList(owner.request).then(response => {
-        
           owner.request.TotalCount = response.TotalCount
-          owner.data = (response.data) 
+          owner.data = (response.data)
+          owner.request.Model = JSON.parse(owner.request.Model)
         })
       },
 
