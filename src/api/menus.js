@@ -6,3 +6,9 @@ export function GetSupperMenus(data) {
     method: 'post'
   })
 }
+export function GetParentMenus(data) {
+  return request({
+    url: '/api/Menus/GetParentMenus',
+    method: 'post'
+  })
+}

@@ -113,7 +113,7 @@
             "Filters": [
               {
                 "Field": "TableName",
-                "Value": "ShowColumns",
+                "Value": "ModifyColumns",
                 "Operator": "Equals"
               }
             ]

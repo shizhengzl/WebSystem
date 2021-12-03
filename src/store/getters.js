@@ -1,4 +1,5 @@
 const getters = {
+  company: state => state.user.company,
   sidebar: state => state.app.sidebar,
   device: state => state.app.device,
   token: state => state.user.token,

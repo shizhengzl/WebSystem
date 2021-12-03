@@ -9,7 +9,17 @@ import getPageTitle from '@/utils/get-page-title'
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
 const whiteList = ['/login'] // no redirect whitelist
+export function GetUrlRelativePath(url) {
+  var arrUrl = url.split('//')
 
+  var start = arrUrl[1].indexOf('/')
+  var relUrl = arrUrl[1].substring(start)
+
+  if (relUrl.indexOf('?') !== -1) {
+    relUrl = relUrl.split('?')[0]
+  }
+  return relUrl
+}
 router.beforeEach(async(to, from, next) => {
   // start progress bar
   NProgress.start()
@@ -27,7 +37,11 @@ router.beforeEach(async(to, from, next) => {
       NProgress.done()
     } else {
       const hasGetUserInfo = store.getters.name
+      let fromPath = GetUrlRelativePath(window.location.href).replace(new RegExp('#/dashboard/#/', 'g'), '').replace(new RegExp('#/dashboard', 'g'), '')
+      fromPath = fromPath.replace(new RegExp('/#', 'g'), '')
+    
       if (hasGetUserInfo) {
+      //  next({ path: fromPath })
         next()
       } else { 
         try {
@@ -41,8 +55,8 @@ router.beforeEach(async(to, from, next) => {
           // dynamically add accessible routes
           router.addRoutes(accessRoutes)
 
-       
-          next()
+          next({ path: fromPath })
+          //next()
         } catch (error) {
           // remove token and go to login page to re-login
           await store.dispatch('user/resetToken')

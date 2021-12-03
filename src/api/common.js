@@ -28,10 +28,26 @@ export function GetList(rq) {
 
 
 
-export function Modify(rq) {
+export function Save(rq) {
   return request({
-    url: '/api/Common/Modify',
+    url: '/api/Common/Save',
     method: 'post',
     data: rq
+  })
+}
+
+export function Remove(rq) {
+  return request({
+    url: '/api/Common/Remove',
+    method: 'post',
+    data: rq
+  })
+}
+
+
+export function GetTables() {
+  return request({
+    url: '/api/Common/GetTables',
+    method: 'post'
   })
 }

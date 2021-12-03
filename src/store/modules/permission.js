@@ -6,16 +6,17 @@ export function resolveRoutes(routes) {
     if (!route.component || route.component === 'Layout') {
       route.redirect = 'noRedirect'
       route.component = Layout
-    } else {
+    } else { 
       delete route.children
       delete route.redirect
       delete route.id
       delete route.alwaysShow
       // 前面+''解决编译警告：Critical dependency: the request of a dependency is an expression
-     
-       const path = route.component
-       //route.component = () => import(`${route.component}`)
-       route.component = (resolve) => require([`@/views${path}.vue`], resolve)
+    
+       const paths = route.component
+      //route.component = () => import(`${route.component}`)
+       route.path = route.path;
+       route.component = (resolve) => require([`@/views${paths}.vue`], resolve)
     }
  
     if (route.children && route.children.length > 0) {
@@ -57,6 +58,7 @@ export function filterAsyncRoutes(routes, roles) {
 
   return res
 }
+
 
 const state = {
   routes: [],
