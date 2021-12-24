@@ -3,42 +3,31 @@
   <div class="app-container">
 
     <div style="margin-bottom:5px;">
-      <el-button type="success" icon="el-icon-circle-plus-outline" @click="create()">添加</el-button>
+      <el-button type="success" icon="el-icon-circle-plus-outline" @click="create()" v-if="IsRight ? menus.rightShowCreate: menus.showCreate">添加</el-button>
       <el-input v-model="filter"
                 placeholder="请输入内容"
                 style="width:220px;margin-left:5px;"
                 prefix-icon="el-icon-search" />
     </div>
 
-    <!--<el-collapse accordion>
-      <el-collapse-item>
-        <template slot="title">
-          <span style="display:inline-block;float:right;margin-right:25px;margin-top:5px;">高级查询</span>
-        </template>
-        <div>与现实生活一致：与现实生活的流程、逻辑保持一致，遵循用户习惯的语言和概念；</div>
-        <div>在界面中一致：所有的元素和结构需保持一致，比如：设计样式、图标和文本、元素的位置等。</div>
-      </el-collapse-item>
-
-    </el-collapse>-->
-
     <el-table :data="data" @sort-change="Sort">
       <el-table-column type="selection" width="55">
       </el-table-column>
 
       <template v-for="(item,index) in header">
-        <el-table-column  
-                         :prop="item.columnName"
+        <el-table-column :prop="item.columnName"
                          :label="item.columnDescription || item.columnName"
-                         :formatter="globalformat"
-                         :width="item.columnWidth"
+                         sortable
                          :align="item.postion"
-                         sortable>
-        </el-table-column> 
+                         :formatter="globalformat"
+                         show-overflow-tooltip
+                         :width="item.columnWidth">
+        </el-table-column>
 
         <el-table-column label="操作" v-if="index == header.length-1">
           <template slot-scope="scope">
-            <el-button type="success" size="small" @click="modify(scope.row)">编辑</el-button>
-            <el-button type="danger" size="small" @click="remove(scope.row)">删除</el-button>
+            <el-button type="success" v-if="IsRight ? menus.rightShowModify : menus.showModify" size="small" @click="modify(scope.row)">编辑</el-button>
+            <el-button type="danger"  v-if="IsRight ? menus.rightShowRemove : menus.showRemove" size="small" @click="remove(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </template>
@@ -47,7 +36,7 @@
     <el-pagination @size-change="handleSizeChange"
                    @current-change="handleCurrentChange"
                    :current-page="request.PageIndex"
-                   :page-sizes="[8, 10, 20, 40]"
+                   :page-sizes="[8, 10, 20, 40]"  v-if="IsRight ? menus.rightShowPage : menus.showPage"
                    :page-size="request.PageSize"
                    layout="total, sizes, prev, pager, next, jumper"
                    :total="request.TotalCount">
@@ -59,43 +48,30 @@
           <el-row v-if="index % 2 == 0">
             <el-col :span="10">
               <el-form-item v-if="item.csharpType == 'String' "
-                            :label="item.columnDescription  || item.columnName" :prop="item.columnName">
+                            :label="item.columnDescription || item.columnName" :prop="item.columnName">
                 <el-input v-model="model[item.columnName]"
                           clearable></el-input>
               </el-form-item>
-
-              <!--int 不是枚举!-->
-              <el-form-item v-if="(item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64') && !item.sourceValue "
-                            :label="item.columnDescription  || item.columnName" :prop="item.columnName">
-                <el-input v-model="model[item.columnName]" typeof="number"   
+              <el-form-item v-if="item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64' "
+                            :label="item.columnDescription || item.columnName" :prop="item.columnName">
+                <el-input v-model="model[item.columnName]" typeof="number"
                           clearable></el-input>
               </el-form-item>
-
-              <!--int 是枚举!-->
-              <el-form-item v-if="(item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64') && item.sourceValue "
-                            :label="item.columnDescription || item.columnName" :prop="item.columnName">
-                <!--<el-input v-model="model[item.columnName]" typeof="number"
-                          clearable></el-input>-->
-
-                <el-select v-model="model[item.columnName]" clearable placeholder="请选择" style="width:100%;">
-                  <el-option v-for="item in headerformat[item.columnName]"
-                             :key="item.keys"
-                             :label="item.name"
-                             :value="item.keys">
-                  </el-option>
-                </el-select> 
-              </el-form-item>
-
-
               <el-form-item v-else-if="item.csharpType == 'Boolean'" :label="item.columnDescription || item.columnName">
                 <el-switch v-model="model[item.columnName]"
                            active-color="#13ce66"
                            inactive-color="#ff4949">
                 </el-switch>
               </el-form-item>
-
-
-
+              <el-form-item v-else-if="item.csharpType == 'Guid' && !!item.json" :label="item.columnDescription || item.columnName">
+                <el-select v-model="model[item.columnName]" placeholder="请选择" filterable>
+                  <el-option v-for="t in headerfilter[item.columnName].json"
+                             :key="t[firstToLowwer(item.bindKey)]"
+                             :label="t[firstToLowwer(item.bindValue)]"
+                             :value="t[firstToLowwer(item.bindKey)]">
+                  </el-option>
+                </el-select>
+              </el-form-item>
             </el-col>
             <el-col :span="10" v-if="index < header.length -1 ">
               <el-form-item v-if="header[index+1].csharpType == 'String' "
@@ -103,37 +79,26 @@
                 <el-input v-model="model[header[index+1].columnName]"
                           clearable></el-input>
               </el-form-item>
-
-              <el-form-item v-if="(header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64') && !header[index+1].sourceValue"
+              <el-form-item v-if="header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64' "
                             :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
                 <el-input v-model="model[header[index+1].columnName]" typeof="number"
                           clearable></el-input>
               </el-form-item>
-
-              <el-form-item v-if="(header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64') &&  header[index+1].sourceValue"
-                            :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
-                <!--<el-input v-model="model[header[index+1].columnName]" typeof="number"
-                          clearable></el-input>-->
-
-
-                <el-select v-model="model[header[index+1].columnName]" clearable placeholder="请选择" style="width:100%;">
-                  <el-option v-for="item in headerformat[header[index+1].columnName]"
-                             :key="item.keys"
-                             :label="item.name"
-                             :value="item.keys">
-                  </el-option>
-                </el-select>
-              </el-form-item>
-
-
               <el-form-item v-else-if="header[index+1].csharpType == 'Boolean'" :label="header[index+1].columnDescription || header[index+1].columnName">
-
                 <el-switch v-model="model[header[index+1].columnName]"
                            active-color="#13ce66"
                            inactive-color="#ff4949">
                 </el-switch>
               </el-form-item>
-
+              <el-form-item v-else-if="header[index+1].csharpType == 'Guid' && !!header[index+1].json" :label="header[index+1].columnDescription || header[index+1].columnName">
+                <el-select v-model="model[header[index+1].columnName]" placeholder="请选择" filterable >
+                  <el-option v-for="t in headerfilter[header[index+1].columnName].json"
+                             :key="t[firstToLowwer(header[index+1].bindKey)]"
+                             :label="t[firstToLowwer(header[index+1].bindValue)]"
+                             :value="t[firstToLowwer(header[index+1].bindKey)]">
+                  </el-option>
+                </el-select>
+              </el-form-item>
             </el-col>
           </el-row>
 
@@ -150,8 +115,23 @@
 </template>
 <script>
   import { GetHeader, GetList, Save, Remove } from '@/api/common'
-  import { IsPhone, IsEmail } from '@/utils/validate'
+  import { IsPhone, IsEmail, firstToLowwer } from '@/utils/validate'
+  import { formatTimeToStr } from '@/utils/dateformat'
   export default {
+    props: {
+      IsRight: {
+        Type: Boolean,
+        default: false,
+      },
+      ParentKey: {
+        Type: String,
+        default:''
+      },
+      ParentValue: {
+        Type: String,
+        default: ''
+      },
+    },
     watch: {
       filter: function (searchvalue) {
         if (!searchvalue)
@@ -162,7 +142,16 @@
           "Field": "CompanysId",
           "Value": owner.$store.getters.company,
           "Operator": "Equals"
-        });
+        }); 
+        var index = 1;
+        if (owner.ParentKey && owner.ParentValue) {
+          index++; 
+          this.request.Model.Filters.push({
+            "Field": owner.ParentKey,
+            "Value": owner.ParentValue,
+            "Operator": "Equals"
+          });
+        } 
          
         this.request.Model.Filters.push({
           "Logic": "Or",
@@ -170,29 +159,45 @@
         });
 
         owner.header.filter(x => { return x.isLike == true }).forEach(p => {
-          owner.request.Model.Filters[1].Filters.push({
+          owner.request.Model.Filters[index].Filters.push({
             "Field": p.columnName,
             "Value": searchvalue,
             "Operator": "Contains"
-          }); 
+          });
+
         });
         owner.getList();
       }
     },
     // 初始化
-    mounted() {
+    mounted() { 
+      this.menus = this.$route.meta.menusettins; 
+      if (!this.IsRight) { 
+        this.request.TableName = this.menus.sourceValue
+        this.request.PageSize = this.menus.showPage ? this.menus.pageSize : 100000;
+      }
+        
+      else {
+        this.request.TableName = this.menus.rightSourceValue
+        this.ParentKey = this.menus.sourceValue + 'Id' 
+        this.request.PageSize = this.menus.rightShowPage ? this.menus.rightPageSize : 100000;
+      }
+     
+      this.request.filter = this.menus.id;
       this.getHeader();
       this.getList();
+
     },
     data() {
       return {
         validfun: {
           IsPhone: IsPhone,
           IsEmail: IsEmail
-        },
+        }, 
+        menus: {},
+        headerfilter: {},
         // 展示列表头部
         header: [],
-        headerformat : {},
         // 展示列表数据
         data: [],
         // 添加修改弹框
@@ -208,8 +213,8 @@
         // 查询条件
         filter: '',
         // 查询
-        request: {
-          TableName: 'ConnectionString',
+        request: { 
+          TableName: '',
           Model: {
             "Logic": "And",
             "Filters": [
@@ -229,10 +234,13 @@
     },
     // 方法
     methods: {
+      firstToLowwer: function (str) {
+        return firstToLowwer(str)
+      },
       remove: function (row) {
         const owner = this
         let saverequest = {
-          TableName: 'Users',
+          TableName: owner.TableName,
           Model: row
         }
         Remove(saverequest).then(response => {
@@ -273,15 +281,15 @@
       },
 
       getHeader: function () {
-        const owner = this
+        const owner = this 
         GetHeader(owner.request).then(response => {
           owner.header = response.data;
-          owner.header.forEach(p => {
-            if (p.sourceValue) {
-              owner.headerformat[p.columnName] = JSON.parse(p.json);
+          owner.header.forEach(x => {
+            if (x.json) {
+              owner.headerfilter[x.columnName] = { bindKey: x.bindKey, bindValue: x.bindValue, json: JSON.parse(x.json) };
             }
-          });
-          if (response.rules) {
+          }); 
+          if (response.rules) { 
             owner.rules = JSON.parse(response.rules)
             for (var s in owner.rules) {
               var rule = owner.rules[s];
@@ -294,12 +302,22 @@
               }
             }
           }
+
         })
       },
       getList: function () {
-        const owner = this
+        const owner = this 
+        owner.request.Model.Filters = [owner.request.Model.Filters[0]];
         owner.request.Model.Filters[0].Value = owner.$store.getters.company;
-        owner.request.Model = JSON.stringify(owner.request.Model);
+        if (owner.ParentKey && owner.ParentValue) {
+          owner.request.Model.Filters.push({
+            "Field": owner.ParentKey,
+            "Value": owner.ParentValue,
+            "Operator": "Equals"
+          });
+        }
+        owner.request.Model = JSON.stringify(owner.request.Model); 
+    
 
         GetList(owner.request).then(response => {
           owner.data = (response.data)
@@ -311,16 +329,38 @@
       globalformat: function (row, col, cell, index) {
         var owner = this;
         var val = row[col.property];
-        var response = val; 
-        var cols= owner.header.filter(x => { return col.property == x.columnName })[0]; 
-        if (owner.headerformat[col.property] ) {
-            if (cols.csharpType == "Boolean") { 
-              response = owner.headerformat[col.property].filter(p => { return p.code == (val ? '1' : '0') })[0].name;
+        var response = val;
+        var item = owner.header.filter(o => { return o.columnName == col.property })[0];
+        if (item.sourceValue) {
+          var arr = JSON.parse(item.json);
+          if (arr.length > 0) {
+            if (item.csharpType == "Boolean") {
+              var res = arr.filter(p => { return p.code == (val ? '1' : '0') });
+              if (res.length > 0) {
+                response = res[0].name;
+              }
             }
-            if (cols.csharpType == "Int16" || cols.csharpType == "Int32" || cols.csharpType == "Int64") {
-              response = owner.headerformat[col.property].filter(p => { return p.keys == val })[0].name;
+            // 处理绑定的
+            if (item.csharpType == "Guid") {
+              if (item.bindKey && item.bindValue) {
+                var key = firstToLowwer(item.bindKey);
+                var name = firstToLowwer(item.bindValue);
+
+                var res = arr.filter(p => { return p[key].toUpperCase() == val.toUpperCase() });
+                if (res.length > 0) {
+                  response = res[0][name];
+                }
+                else
+                  response = "";
+              }
             }
-       
+          }
+        }
+        else {
+
+          if (item.csharpType == "DateTime") {
+            response = formatTimeToStr(val, "yyyy-MM-dd hh:mm:ss");
+          }
         }
         return response;
       },
@@ -331,7 +371,7 @@
         this.getList();
       },
       handleCurrentChange: function (currentPage) {
-        this.request.PageIndex = currentPage; globalformat
+        this.request.PageIndex = currentPage;
         this.getList();
       },
 

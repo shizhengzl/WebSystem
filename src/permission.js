@@ -47,8 +47,7 @@ router.beforeEach(async(to, from, next) => {
         try {
 
           // get user info
-          let data = await store.dispatch('user/getInfo') 
-        
+          let data = await store.dispatch('user/getInfo')
           // generate accessible routes map based on roles
           const accessRoutes = await store.dispatch('permission/generateRoutes', data)
            

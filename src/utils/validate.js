@@ -50,3 +50,10 @@ export function IsEmail(rule, value, callback) {
     }
   }
 }
+
+
+export function firstToLowwer(str) {
+  return str.replace(/\b(\w)(\w*)/g, function ($0, $1, $2) { 
+    return $1.toLowerCase() + $2;
+  });
+}

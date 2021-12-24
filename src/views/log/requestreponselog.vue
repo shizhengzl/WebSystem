@@ -7,33 +7,23 @@
       <el-input v-model="filter"
                 placeholder="请输入内容"
                 style="width:220px;margin-left:5px;"
-                prefix-icon="el-icon-search" />
-    </div>
-
-    <!--<el-collapse accordion>
-      <el-collapse-item>
-        <template slot="title">
-          <span style="display:inline-block;float:right;margin-right:25px;margin-top:5px;">高级查询</span>
-        </template>
-        <div>与现实生活一致：与现实生活的流程、逻辑保持一致，遵循用户习惯的语言和概念；</div>
-        <div>在界面中一致：所有的元素和结构需保持一致，比如：设计样式、图标和文本、元素的位置等。</div>
-      </el-collapse-item>
-
-    </el-collapse>-->
+                prefix-icon="el-icon-search" /> 
+    </div> 
 
     <el-table :data="data" @sort-change="Sort">
       <el-table-column type="selection" width="55">
       </el-table-column>
 
-      <template v-for="(item,index) in header">
-        <el-table-column  
+      <template v-for="(item,index) in header"> 
+        <el-table-column 
                          :prop="item.columnName"
                          :label="item.columnDescription || item.columnName"
-                         :formatter="globalformat"
-                         :width="item.columnWidth"
+                         sortable
                          :align="item.postion"
-                         sortable>
-        </el-table-column> 
+                         :formatter="globalformat"
+                         show-overflow-tooltip
+                         :width="item.columnWidth">
+        </el-table-column>
 
         <el-table-column label="操作" v-if="index == header.length-1">
           <template slot-scope="scope">
@@ -59,31 +49,15 @@
           <el-row v-if="index % 2 == 0">
             <el-col :span="10">
               <el-form-item v-if="item.csharpType == 'String' "
-                            :label="item.columnDescription  || item.columnName" :prop="item.columnName">
+                            :label="item.columnDescription || item.columnName" :prop="item.columnName">
                 <el-input v-model="model[item.columnName]"
                           clearable></el-input>
               </el-form-item>
 
-              <!--int 不是枚举!-->
-              <el-form-item v-if="(item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64') && !item.sourceValue "
-                            :label="item.columnDescription  || item.columnName" :prop="item.columnName">
-                <el-input v-model="model[item.columnName]" typeof="number"   
-                          clearable></el-input>
-              </el-form-item>
-
-              <!--int 是枚举!-->
-              <el-form-item v-if="(item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64') && item.sourceValue "
+              <el-form-item v-if="item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64' "
                             :label="item.columnDescription || item.columnName" :prop="item.columnName">
-                <!--<el-input v-model="model[item.columnName]" typeof="number"
-                          clearable></el-input>-->
-
-                <el-select v-model="model[item.columnName]" clearable placeholder="请选择" style="width:100%;">
-                  <el-option v-for="item in headerformat[item.columnName]"
-                             :key="item.keys"
-                             :label="item.name"
-                             :value="item.keys">
-                  </el-option>
-                </el-select> 
+                <el-input v-model="model[item.columnName]" typeof="number"
+                          clearable></el-input>
               </el-form-item>
 
 
@@ -104,25 +78,10 @@
                           clearable></el-input>
               </el-form-item>
 
-              <el-form-item v-if="(header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64') && !header[index+1].sourceValue"
+              <el-form-item v-if="header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64' "
                             :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
                 <el-input v-model="model[header[index+1].columnName]" typeof="number"
                           clearable></el-input>
-              </el-form-item>
-
-              <el-form-item v-if="(header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64') &&  header[index+1].sourceValue"
-                            :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
-                <!--<el-input v-model="model[header[index+1].columnName]" typeof="number"
-                          clearable></el-input>-->
-
-
-                <el-select v-model="model[header[index+1].columnName]" clearable placeholder="请选择" style="width:100%;">
-                  <el-option v-for="item in headerformat[header[index+1].columnName]"
-                             :key="item.keys"
-                             :label="item.name"
-                             :value="item.keys">
-                  </el-option>
-                </el-select>
               </el-form-item>
 
 
@@ -149,8 +108,9 @@
   </div>
 </template>
 <script>
-  import { GetHeader, GetList, Save, Remove } from '@/api/common'
+  import { GetHeader, GetList, Save, Remove} from '@/api/common'
   import { IsPhone, IsEmail } from '@/utils/validate'
+  import { formatTimeToStr } from '@/utils/dateformat'
   export default {
     watch: {
       filter: function (searchvalue) {
@@ -158,12 +118,13 @@
           return;
         var owner = this;
         this.request.Model.Filters = [];
-        this.request.Model.Filters.push({
+        this.request.Model.Filters.push({ 
           "Field": "CompanysId",
           "Value": owner.$store.getters.company,
           "Operator": "Equals"
         });
-         
+
+
         this.request.Model.Filters.push({
           "Logic": "Or",
           "Filters": [],
@@ -174,13 +135,14 @@
             "Field": p.columnName,
             "Value": searchvalue,
             "Operator": "Contains"
-          }); 
-        });
+          });
+
+        }); 
         owner.getList();
       }
     },
     // 初始化
-    mounted() {
+    mounted() { 
       this.getHeader();
       this.getList();
     },
@@ -189,10 +151,9 @@
         validfun: {
           IsPhone: IsPhone,
           IsEmail: IsEmail
-        },
+        }, 
         // 展示列表头部
         header: [],
-        headerformat : {},
         // 展示列表数据
         data: [],
         // 添加修改弹框
@@ -206,33 +167,34 @@
         // 编辑标题
         title: '',
         // 查询条件
-        filter: '',
+        filter: '', 
         // 查询
         request: {
-          TableName: 'ConnectionString',
-          Model: {
-            "Logic": "And",
-            "Filters": [
-              {
-                "Field": "CompanysId",
-                //"Value": this.company,
-                "Operator": "Equals"
-              }
-            ]
+          DataBaseName:'logs',
+          TableName: 'RequestResponseLogs',
+          Model: { 
+              "Logic": "And",
+              "Filters": [
+                {
+                  "Field": "CompanysId",
+                  //"Value": this.company,
+                  "Operator": "Equals"
+                }
+              ]
           },
-          PageSize: 8,
+          PageSize:8,
           PageIndex: 1,
           TotalCount: 0,
-          Sort: 'Id'
+          Sort:'Id'
         }
       }
     },
     // 方法
-    methods: {
+    methods: { 
       remove: function (row) {
         const owner = this
         let saverequest = {
-          TableName: 'Users',
+          TableName: 'RequestResponseLogs',
           Model: row
         }
         Remove(saverequest).then(response => {
@@ -250,7 +212,7 @@
       modify: function (row) {
         this.model = row;
         this.formdialog = true;
-      },
+      }, 
       save: function () {
         const owner = this
         this.$refs.create.validate((valid) => {
@@ -269,39 +231,36 @@
             console.log('error submit!!');
             return false;
           }
-        });
+        });  
       },
-
+       
       getHeader: function () {
         const owner = this
         GetHeader(owner.request).then(response => {
-          owner.header = response.data;
-          owner.header.forEach(p => {
-            if (p.sourceValue) {
-              owner.headerformat[p.columnName] = JSON.parse(p.json);
-            }
-          });
+          owner.header = response.data; 
           if (response.rules) {
+            
             owner.rules = JSON.parse(response.rules)
-            for (var s in owner.rules) {
+            for (var s in owner.rules) { 
               var rule = owner.rules[s];
               if (rule && rule.length > 0) {
                 rule.forEach(x => {
                   if (x.validator) {
-                    x.validator = owner.validfun[x.validator]
+                    x.validator = owner.validfun[x.validator] 
                   }
                 });
               }
             }
           }
+         
         })
       },
       getList: function () {
-        const owner = this
-        owner.request.Model.Filters[0].Value = owner.$store.getters.company;
+        const owner = this 
+        owner.request.Model.Filters[0].Value = owner.$store.getters.company;   
         owner.request.Model = JSON.stringify(owner.request.Model);
-
-        GetList(owner.request).then(response => {
+       
+        GetList(owner.request).then(response => { 
           owner.data = (response.data)
           owner.request.Model = JSON.parse(owner.request.Model)
           owner.request.TotalCount = response.totalCount;
@@ -312,26 +271,35 @@
         var owner = this;
         var val = row[col.property];
         var response = val; 
-        var cols= owner.header.filter(x => { return col.property == x.columnName })[0]; 
-        if (owner.headerformat[col.property] ) {
-            if (cols.csharpType == "Boolean") { 
-              response = owner.headerformat[col.property].filter(p => { return p.code == (val ? '1' : '0') })[0].name;
+        var item = owner.header.filter(o => { return o.columnName == col.property })[0]; 
+        if (item.sourceValue) {
+          var arr = JSON.parse(item.json);
+          if (arr.length > 0) {
+            if (item.csharpType == "Boolean") {
+              var res = arr.filter(p => { return p.code == (val ? '1' : '0') });
+              if (res.length > 0) {
+                response = res[0].name;
+              }
             }
-            if (cols.csharpType == "Int16" || cols.csharpType == "Int32" || cols.csharpType == "Int64") {
-              response = owner.headerformat[col.property].filter(p => { return p.keys == val })[0].name;
-            }
+
+          }
+        }
+        else {
        
+          if (item.csharpType == "DateTime") { 
+            response = formatTimeToStr(val, "yyyy-MM-dd hh:mm:ss");
+          }
         }
         return response;
       },
-
+ 
 
       handleSizeChange: function (size) {
         this.request.PageSize = size;
         this.getList();
       },
       handleCurrentChange: function (currentPage) {
-        this.request.PageIndex = currentPage; globalformat
+        this.request.PageIndex = currentPage;
         this.getList();
       },
 

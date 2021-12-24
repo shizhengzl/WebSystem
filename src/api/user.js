@@ -22,3 +22,14 @@ export function logout() {
     method: 'post'
   })
 }
+
+export function resetpasswords(rq) {
+  return request({
+    url: '/api/Users/ResetPassword',
+    method: 'post',
+    data:rq
+  })
+}
+
+
+

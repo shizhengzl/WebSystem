@@ -12,11 +12,11 @@ export function resolveRoutes(routes) {
       delete route.id
       delete route.alwaysShow
       // 前面+''解决编译警告：Critical dependency: the request of a dependency is an expression
-    
-       const paths = route.component
+      const paths = route.component
       //route.component = () => import(`${route.component}`)
        route.path = route.path;
        route.component = (resolve) => require([`@/views${paths}.vue`], resolve)
+
     }
  
     if (route.children && route.children.length > 0) {
@@ -85,7 +85,6 @@ const actions = {
       // }
 
       let accessedRoutes = roles.router
-
       accessedRoutes = resolveRoutes(accessedRoutes)
 
       // accessedRoutes.push({ path: '*', redirect: '/404', hidden: true })

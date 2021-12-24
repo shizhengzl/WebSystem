@@ -7,19 +7,19 @@
       <el-input v-model="filter"
                 placeholder="请输入内容"
                 style="width:220px;margin-left:5px;"
-                prefix-icon="el-icon-search" /> 
+                prefix-icon="el-icon-search" />
     </div>
 
     <!--<el-collapse accordion>
-      <el-collapse-item>
-        <template slot="title"> 
-          <span style="display:inline-block;float:right;margin-right:25px;margin-top:5px;">高级查询</span>
-        </template>
-        <div>与现实生活一致：与现实生活的流程、逻辑保持一致，遵循用户习惯的语言和概念；</div>
-        <div>在界面中一致：所有的元素和结构需保持一致，比如：设计样式、图标和文本、元素的位置等。</div>
-      </el-collapse-item>
+    <el-collapse-item>
+      <template slot="title">
+        <span style="display:inline-block;float:right;margin-right:25px;margin-top:5px;">高级查询</span>
+      </template>
+      <div>与现实生活一致：与现实生活的流程、逻辑保持一致，遵循用户习惯的语言和概念；</div>
+      <div>在界面中一致：所有的元素和结构需保持一致，比如：设计样式、图标和文本、元素的位置等。</div>
+    </el-collapse-item>
 
-    </el-collapse>-->
+  </el-collapse>-->
 
     <el-table :data="data" @sort-change="Sort">
       <el-table-column type="selection" width="55">
@@ -44,6 +44,7 @@
 
         <el-table-column label="操作" v-if="index == header.length-1">
           <template slot-scope="scope">
+            <el-button type="success" size="small" @click="resetpassword(scope.row)">重置密码</el-button>
             <el-button type="success" size="small" @click="modify(scope.row)">编辑</el-button>
             <el-button type="danger" size="small" @click="remove(scope.row)">删除</el-button>
           </template>
@@ -60,73 +61,93 @@
                    :total="request.TotalCount">
     </el-pagination>
 
-    <el-dialog :title="title" :visible.sync="formdialog" :close-on-click-modal="false" :close-on-press-escape="false" @close="reset">
-      <el-form id="#create" ref="create" :model="model" :rules="rules" label-width="130px">
-        <template v-for="(item,index) in header">
-          <el-row v-if="index % 2 == 0">
-            <el-col :span="10">
-              <el-form-item v-if="item.csharpType == 'String' "
-                            :label="item.columnDescription || item.columnName" :prop="item.columnName">
-                <el-input v-model="model[item.columnName]"
-                          clearable></el-input>
-              </el-form-item>
 
-              <el-form-item v-if="item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64' "
-                            :label="item.columnDescription || item.columnName" :prop="item.columnName">
-                <el-input v-model="model[item.columnName]" typeof="number"
-                          clearable></el-input>
-              </el-form-item>
+    <el-dialog title="重置密码" :visible.sync="resetpassworddialog" :close-on-click-modal="false"
+               :close-on-press-escape="false" @close="resetpasswordform">
+      <el-form id="#resetform" ref="resetform" :model="passwrodmodel" label-width="130px">
+        <el-form-item label="密码：">
+          <el-input v-model="passwrodmodel.password" placeholder="请输入密码" show-password
+                    clearable></el-input>
+        </el-form-item>
 
-
-              <el-form-item v-else-if="item.csharpType == 'Boolean'" :label="item.columnDescription || item.columnName">
-                <el-switch v-model="model[item.columnName]"
-                           active-color="#13ce66"
-                           inactive-color="#ff4949">
-                </el-switch>
-              </el-form-item>
-
-
-
-            </el-col>
-            <el-col :span="10" v-if="index < header.length -1 ">
-              <el-form-item v-if="header[index+1].csharpType == 'String' "
-                            :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
-                <el-input v-model="model[header[index+1].columnName]"
-                          clearable></el-input>
-              </el-form-item>
-
-              <el-form-item v-if="header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64' "
-                            :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
-                <el-input v-model="model[header[index+1].columnName]" typeof="number"
-                          clearable></el-input>
-              </el-form-item>
-
-
-              <el-form-item v-else-if="header[index+1].csharpType == 'Boolean'" :label="header[index+1].columnDescription || header[index+1].columnName">
-
-                <el-switch v-model="model[header[index+1].columnName]"
-                           active-color="#13ce66"
-                           inactive-color="#ff4949">
-                </el-switch>
-              </el-form-item>
-
-            </el-col>
-          </el-row>
-
-
-        </template>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="formdialog=false">取 消</el-button>
-        <el-button type="primary" :loading="saveLoading" @click="save">确 定</el-button>
+        <el-button @click="resetpassworddialog=false">取 消</el-button>
+        <el-button type="primary" :loading="saveLoading" @click="savepassword">确 定</el-button>
       </div>
     </el-dialog>
+
+
+      <el-dialog :title="title" :visible.sync="formdialog" :close-on-click-modal="false" :close-on-press-escape="false" @close="reset">
+        <el-form id="#create" ref="create" :model="model" :rules="rules" label-width="130px">
+          <template v-for="(item,index) in header">
+            <el-row v-if="index % 2 == 0">
+              <el-col :span="10">
+                <el-form-item v-if="item.csharpType == 'String' "
+                              :label="item.columnDescription || item.columnName" :prop="item.columnName">
+                  <el-input v-model="model[item.columnName]"
+                            clearable></el-input>
+                </el-form-item>
+
+                <el-form-item v-if="item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64' "
+                              :label="item.columnDescription || item.columnName" :prop="item.columnName">
+                  <el-input v-model="model[item.columnName]" typeof="number"
+                            clearable></el-input>
+                </el-form-item>
+
+
+                <el-form-item v-else-if="item.csharpType == 'Boolean'" :label="item.columnDescription || item.columnName">
+                  <el-switch v-model="model[item.columnName]"
+                             active-color="#13ce66"
+                             inactive-color="#ff4949">
+                  </el-switch>
+                </el-form-item>
+
+
+
+              </el-col>
+              <el-col :span="10" v-if="index < header.length -1 ">
+                <el-form-item v-if="header[index+1].csharpType == 'String' "
+                              :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
+                  <el-input v-model="model[header[index+1].columnName]"
+                            clearable></el-input>
+                </el-form-item>
+
+                <el-form-item v-if="header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64' "
+                              :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
+                  <el-input v-model="model[header[index+1].columnName]" typeof="number"
+                            clearable></el-input>
+                </el-form-item>
+
+
+                <el-form-item v-else-if="header[index+1].csharpType == 'Boolean'" :label="header[index+1].columnDescription || header[index+1].columnName">
+
+                  <el-switch v-model="model[header[index+1].columnName]"
+                             active-color="#13ce66"
+                             inactive-color="#ff4949">
+                  </el-switch>
+                </el-form-item>
+
+              </el-col>
+            </el-row>
+
+
+          </template>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="formdialog=false">取 消</el-button>
+          <el-button type="primary" :loading="saveLoading" @click="save">确 定</el-button>
+        </div>
+      </el-dialog>
 
   </div>
 </template>
 <script>
   import { GetHeader, GetList, Save, Remove } from '@/api/common'
   import { IsPhone, IsEmail } from '@/utils/validate'
+  import { resetpasswords } from '@/api/user'
+  
+  import md5 from 'js-md5';
   export default {
     watch: {
       filter: function (searchvalue) {
@@ -164,6 +185,8 @@
     },
     data() {
       return {
+        resetpassworddialog:false,
+        passwrodmodel: {},
         validfun: {
           IsPhone: IsPhone,
           IsEmail: IsEmail
@@ -205,7 +228,25 @@
       }
     },
     // 方法
-    methods: { 
+    methods: {
+      resetpasswordform: function () { this.passwrodmodel = {};},
+      savepassword: function () {
+        var owner = this;
+        owner.passwrodmodel.password = md5(owner.passwrodmodel.password); 
+        resetpasswords(owner.passwrodmodel).then(response => {
+          if (response.success) {
+            owner.resetpassworddialog = false;
+            owner.passwrodmodel = {};
+          }
+        })
+  
+      },
+      resetpassword: function (row) {
+        var owner = this;
+        owner.resetpassworddialog = true;
+        owner.passwrodmodel = { Id: row.id, password: '' };
+        
+      },
       remove: function (row) {
         const owner = this
         let saverequest = {
@@ -251,7 +292,7 @@
        
       getHeader: function () {
         const owner = this
-        GetHeader(owner.request.TableName).then(response => {
+        GetHeader(owner.request).then(response => {
           owner.header = response.data; 
           if (response.rules) {
             

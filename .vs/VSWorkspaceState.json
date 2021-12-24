@@ -3,10 +3,11 @@
     "",
     "\\src",
     "\\src\\api",
-    "\\src\\store",
     "\\src\\store\\modules",
+    "\\src\\utils",
     "\\src\\views",
     "\\src\\views\\menus"
   ],
+  "SelectedNode": "\\src\\utils\\validate.js",
   "PreviewInSolutionExplorer": false
 }

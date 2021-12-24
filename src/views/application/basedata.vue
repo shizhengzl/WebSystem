@@ -302,7 +302,7 @@
        
       getHeader: function () {
         const owner = this
-        GetHeader(owner.request.TableName).then(response => {
+        GetHeader(owner.request).then(response => {
           owner.header = response.data
         })
       },
@@ -376,7 +376,7 @@
 
       getdetailHeader: function () {
         const owner = this
-        GetHeader(owner.detailrequest.TableName).then(response => {
+        GetHeader(owner.detailrequest).then(response => {
           owner.detailheader = response.data
         })
       },

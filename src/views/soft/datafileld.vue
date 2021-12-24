@@ -2,181 +2,133 @@
 <template>
   <div class="app-container">
 
-    <div style="margin-bottom:5px;">
-      <el-button type="success" icon="el-icon-circle-plus-outline" @click="create()">添加</el-button>
-      <el-input v-model="filter"
-                placeholder="请输入内容"
-                style="width:220px;margin-left:5px;"
-                prefix-icon="el-icon-search" />
-    </div>
+    <el-container>
+      <el-aside width="480px">
 
-    <!--<el-collapse accordion>
-      <el-collapse-item>
-        <template slot="title">
-          <span style="display:inline-block;float:right;margin-right:25px;margin-top:5px;">高级查询</span>
-        </template>
-        <div>与现实生活一致：与现实生活的流程、逻辑保持一致，遵循用户习惯的语言和概念；</div>
-        <div>在界面中一致：所有的元素和结构需保持一致，比如：设计样式、图标和文本、元素的位置等。</div>
-      </el-collapse-item>
+        <el-input v-model="filterText"
+                  placeholder="输入关键字进行过滤" />
+         
+          <el-tree ref="tree"
+                   class="filter-tree"
+                   :data="allconnection"
+                   node-key="id" 
+                   :props="defaultProps"
+                   :filter-node-method="filterNode"
+                   @node-click="handleNodeClick">
+            <span class="custom-tree-node" slot-scope="{ node, data }">
+              <span style="color:orangered;font-weight:600;">{{ node.name }}</span>
+              <span>
+                <el-link type="primary" round @click="() => loadcolumn(node, data)"
+                         size="mini">
+                  {{data.name}}
+                </el-link> &nbsp; &nbsp;
+                <el-link type="success" round  v-if="data.children.length == 0"  @click="() => edittabledescription(node, data)"
+                         size="mini">
+                  {{data.description || '添加备注'}}
+                </el-link>
+              </span>
+            </span>
+          </el-tree>
+   
 
-    </el-collapse>-->
 
-    <el-table :data="data" @sort-change="Sort">
-      <el-table-column type="selection" width="55">
-      </el-table-column>
+      </el-aside>
+      <el-main> 
 
-      <template v-for="(item,index) in header">
-        <el-table-column :prop="item.columnName"
-                         :label="item.columnDescription || item.columnName"
-                         :formatter="globalformat"
-                         :width="item.columnWidth"
-                         :align="item.postion"
-                         sortable>
-        </el-table-column>
+        <el-table :data="data" @sort-change="Sort">
+          <el-table-column type="selection" width="55">
+          </el-table-column>
 
-        <el-table-column label="操作" v-if="index == header.length-1">
-          <template slot-scope="scope">
-            <el-button type="success" size="small" @click="modify(scope.row)">编辑</el-button>
-            <el-button type="danger" size="small" @click="remove(scope.row)">删除</el-button>
+          <template v-for="(item,index) in header">
+            <el-table-column :prop="item.columnName"
+                             :label="item.columnDescription || item.columnName"
+                             :formatter="globalformat"
+                             :width="item.columnWidth"
+                             :align="item.postion"
+                             sortable>
+            </el-table-column>
+
+            <el-table-column label="操作" v-if="index == header.length-1">
+              <template slot-scope="scope">
+                <el-button type="success" size="small" @click="modify(scope.row)">编辑</el-button> 
+              </template>
+            </el-table-column>
           </template>
-        </el-table-column>
-      </template>
-    </el-table>
+        </el-table>
 
-    <el-pagination @size-change="handleSizeChange"
-                   @current-change="handleCurrentChange"
-                   :current-page="request.PageIndex"
-                   :page-sizes="[8, 10, 20, 40]"
-                   :page-size="request.PageSize"
-                   layout="total, sizes, prev, pager, next, jumper"
-                   :total="request.TotalCount">
-    </el-pagination>
+        <el-pagination @size-change="handleSizeChange"
+                       @current-change="handleCurrentChange"
+                       :current-page="request.PageIndex"
+                       :page-sizes="[8, 10, 20, 40]"
+                       :page-size="request.PageSize"
+                       layout="total, sizes, prev, pager, next, jumper"
+                       :total="request.TotalCount">
+        </el-pagination>
 
-    <el-dialog :title="title" :visible.sync="formdialog" :close-on-click-modal="false" :close-on-press-escape="false" @close="reset">
-      <el-form id="#create" ref="create" :model="model" :rules="rules" label-width="130px">
-        <template v-for="(item,index) in header">
-          <el-row v-if="index % 2 == 0">
-            <el-col :span="10">
-              <el-form-item v-if="item.csharpType == 'String' "
-                            :label="item.columnDescription || item.columnName" :prop="item.columnName">
-                <el-input v-model="model[item.columnName]"
-                          clearable></el-input>
-              </el-form-item>
+        <el-dialog :title="title" :visible.sync="formdialog" :close-on-click-modal="false" :close-on-press-escape="false" @close="reset">
+          <el-form id="#create" ref="create" :model="model" :rules="rules" label-width="130px">
+            <el-form-item  label="备注">
+              <el-input v-model="model.columnDescription"
+                        clearable></el-input>
+            </el-form-item>
+          </el-form>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="formdialog=false">取 消</el-button>
+            <el-button type="primary" :loading="saveLoading" @click="save">确 定</el-button>
+          </div>
+        </el-dialog>
+      </el-main>
+    </el-container>
 
-              <!--int 不是枚举!-->
-              <el-form-item v-if="(item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64') && false "
-                            :label="item.columnDescription || item.columnName" :prop="item.columnName">
-                <el-input v-model="model[item.columnName]" typeof="number"
-                          clearable></el-input>
-              </el-form-item>
-
-              <!--int 是枚举!-->
-              <el-form-item v-if="(item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64') && item.json "
-                            :label="item.columnDescription || item.columnName" :prop="item.columnName">
-                <!--<el-input v-model="model[item.columnName]" typeof="number"
-                          clearable></el-input>-->
-
-                <el-select v-model="model[item.columnName]" clearable placeholder="请选择" style="width:100%;">
-                  <el-option v-for="item in headerformat[item.columnName]"
-                             :key="item.keys"
-                             :label="item.name"
-                             :value="item.keys">
-                  </el-option>
-                </el-select>
-              </el-form-item>
-
-
-              <el-form-item v-else-if="item.csharpType == 'Boolean'" :label="item.columnDescription || item.columnName">
-                <el-switch v-model="model[item.columnName]"
-                           active-color="#13ce66"
-                           inactive-color="#ff4949">
-                </el-switch>
-              </el-form-item>
-
-
-
-            </el-col>
-            <el-col :span="10" v-if="index < header.length -1 ">
-              <el-form-item v-if="header[index+1].csharpType == 'String' "
-                            :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
-                <el-input v-model="model[header[index+1].columnName]"
-                          clearable></el-input>
-              </el-form-item>
-
-              <el-form-item v-if="header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64' "
-                            :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
-                <el-input v-model="model[header[index+1].columnName]" typeof="number"
-                          clearable></el-input>
-              </el-form-item>
-
-
-              <el-form-item v-else-if="header[index+1].csharpType == 'Boolean'" :label="header[index+1].columnDescription || header[index+1].columnName">
-
-                <el-switch v-model="model[header[index+1].columnName]"
-                           active-color="#13ce66"
-                           inactive-color="#ff4949">
-                </el-switch>
-              </el-form-item>
-
-            </el-col>
-          </el-row>
-
-
-        </template>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="formdialog=false">取 消</el-button>
-        <el-button type="primary" :loading="saveLoading" @click="save">确 定</el-button>
-      </div>
-    </el-dialog>
+   
 
   </div>
 </template>
 <script>
-  import { GetHeader, GetList, Save, Remove } from '@/api/common'
+  import {
+    GetHeader, GetList, Save, Remove, GetALLConnections, GetColumns,
+  AddExtendedproperty, ModifyExtendedproperty, AddTableExtendedproperty, ModifyTableExtendedproperty} from '@/api/common'
   import { IsPhone, IsEmail } from '@/utils/validate'
   export default {
     watch: {
-      filter: function (searchvalue) {
-        if (!searchvalue)
-          return;
-        var owner = this;
-        this.request.Model.Filters = [];
-        this.request.Model.Filters.push({
-          "Field": "CompanysId",
-          "Value": owner.$store.getters.company,
-          "Operator": "Equals"
-        });
-
-        this.request.Model.Filters.push({
-          "Logic": "Or",
-          "Filters": [],
-        });
-
-        owner.header.filter(x => { return x.isLike == true }).forEach(p => {
-          owner.request.Model.Filters[1].Filters.push({
-            "Field": p.columnName,
-            "Value": searchvalue,
-            "Operator": "Contains"
-          });
-        });
-        owner.getList();
+      filterText(val) { 
+        this.$refs.tree.filter(val)
       }
     },
     // 初始化
-    mounted() {
-      this.getHeader();
-      this.getList();
+    mounted() { 
+      this.getConnectionList();
     },
     data() {
       return {
+        columns:[],
+        filterText: '',
+        allconnection:[],
+        defaultProps: {
+          children: 'children',
+          label: 'name',
+          id: 'id'
+        },
         validfun: {
           IsPhone: IsPhone,
           IsEmail: IsEmail
         },
         // 展示列表头部
-        header: [],
-        headerformat: {},
+        header: [
+          { columnName: 'tableName', columnDescription: '表名', columnWidth: 180 }
+          , { columnName: 'columnName', columnDescription: '列名', columnWidth: 140 }
+          , { columnName: 'sqlType', columnDescription: '类型', columnWidth: 120}
+          , { columnName: 'columnDescription', columnDescription: '描述', columnWidth: 320 }
+          , { columnName: 'isRequire', columnDescription: '必填', columnWidth: 80, csharpType:'Boolean' }
+        ],
+        hasdescription: false,
+        iscolumn: false,
+        connectionstr: '',
+        tablename: '',
+        tabledata: {},
+        headerformat: {
+          isRequire: [{ code: '0', name: '否' }, { code: '1', name: '是' }] 
+        },
         // 展示列表数据
         data: [],
         // 添加修改弹框
@@ -193,7 +145,7 @@
         filter: '',
         // 查询
         request: {
-          TableName: 'ConnectionString',
+          TableName: 'Column',
           Model: {
             "Logic": "And",
             "Filters": [
@@ -204,7 +156,7 @@
               }
             ]
           },
-          PageSize: 8,
+          PageSize: 80,
           PageIndex: 1,
           TotalCount: 0,
           Sort: 'Id'
@@ -213,18 +165,48 @@
     },
     // 方法
     methods: {
-      remove: function (row) {
-        const owner = this
-        let saverequest = {
-          TableName: 'Users',
-          Model: row
-        }
-        Remove(saverequest).then(response => {
-          if (response.success) {
-            owner.getList();
-          }
+      getColumns: function (connection,tablename) {
+        var owner = this
+        if (owner.connectionstr) {
+          let pdata = { TableDescription: owner.connectionstr, TableName: owner.tablename };
+
+          GetColumns(pdata).then(response => {
+            owner.data = (response.data)
+          })
+        } 
+      },
+
+      edittabledescription: function (node, data) {
+        var owner = this;
+        owner.connectionstr = data.props
+        owner.tablename = data.name
+        owner.iscolumn = false;
+        owner.hasdescription = data.hasDescription; 
+        owner.model = { columnDescription: data.description}; 
+        owner.formdialog = true;
+        owner.tabledata = data;
+      },
+      loadcolumn: function (node, data) {
+        this.connectionstr = data.props
+        this.tablename = data.name
+        this.getColumns();
+      },
+      filterNode(value, data) {
+        if (!value)
+          return true 
+        return data.name.toLowerCase().indexOf(value.toLowerCase()) !== -1
+          || (data.description && data.description.indexOf(value.toLowerCase()) !== -1)
+      },
+      handleNodeClick(data) {
+        var owner = this
+      },
+      getConnectionList: function () {
+        const owner = this 
+        GetALLConnections().then(response => {
+          owner.allconnection = (response.data)
         })
       },
+      
       reset: function () {
         this.model = {}
       },
@@ -233,79 +215,91 @@
       },
       modify: function (row) {
         this.model = row;
+        this.iscolumn = true;
+        this.hasdescription = row.columnDescription;
         this.formdialog = true;
       },
       save: function () {
-        const owner = this
-        this.$refs.create.validate((valid) => {
-          if (valid) {
-            let saverequest = {
-              TableName: owner.request.TableName,
-              Model: owner.model
+        const owner = this 
+        if (owner.iscolumn && !owner.hasdescription ) {
+          let saverequest = {
+            DefaultValue: owner.connectionstr,
+            TableName: owner.model.tableName,
+            ColumnName: owner.model.columnName,
+            ColumnDescription: owner.model.columnDescription
+          } 
+          AddExtendedproperty(saverequest).then(response => {
+            if (response.success) {
+              this.formdialog = false;
+              owner.getColumns();
             }
-            Save(saverequest).then(response => {
-              if (response.success) {
-                this.formdialog = false;
-                owner.getList();
-              }
-            })
-          } else {
-            console.log('error submit!!');
-            return false;
-          }
-        });
-      },
+          })
+        }
 
-      getHeader: function () {
-        const owner = this
-        GetHeader(owner.request.TableName).then(response => {
-          owner.header = response.data;
-          owner.header.forEach(p => {
-            if (p.sourceValue) {
-              owner.headerformat[p.columnName] = JSON.parse(p.json);
-            }
-          });
-          if (response.rules) {
-            owner.rules = JSON.parse(response.rules)
-            for (var s in owner.rules) {
-              var rule = owner.rules[s];
-              if (rule && rule.length > 0) {
-                rule.forEach(x => {
-                  if (x.validator) {
-                    x.validator = owner.validfun[x.validator]
-                  }
-                });
-              }
-            }
+        if (owner.iscolumn && owner.hasdescription) {
+          let saverequest = {
+            DefaultValue: owner.connectionstr,
+            TableName: owner.tablename,
+            ColumnName: owner.model.columnName,
+            ColumnDescription: owner.model.columnDescription
           }
-        })
-      },
-      getList: function () {
-        const owner = this
-        owner.request.Model.Filters[0].Value = owner.$store.getters.company;
-        owner.request.Model = JSON.stringify(owner.request.Model);
+          ModifyExtendedproperty(saverequest).then(response => {
+            if (response.success) {
+              this.formdialog = false;
+              owner.getColumns();
+            }
+          })
+        }
 
-        GetList(owner.request).then(response => {
-          owner.data = (response.data)
-          owner.request.Model = JSON.parse(owner.request.Model)
-          owner.request.TotalCount = response.totalCount;
-        })
-      },
+        if (!owner.iscolumn && !owner.hasdescription) {
+           
+          let saverequest = {
+            DefaultValue: owner.connectionstr,
+            TableName: owner.tablename,
+            TableDescription: owner.model.columnDescription
+          }
+          AddTableExtendedproperty(saverequest).then(response => {
+            if (response.success) {
+              this.formdialog = false;
+              owner.tabledata.description = owner.model.columnDescription
+              //owner.getColumns();
+            }
+          })
+        }
+
+        if (!owner.iscolumn && owner.hasdescription) {
+          let saverequest = {
+            DefaultValue: owner.connectionstr,
+            TableName: owner.tablename,
+            TableDescription: owner.model.columnDescription
+          }
+          ModifyTableExtendedproperty(saverequest).then(response => {
+            if (response.success) {
+              this.formdialog = false;
+              owner.tabledata.description = owner.model.columnDescription
+              //owner.getColumns();
+            }
+          })
+        }
+      }, 
 
       globalformat: function (row, col, cell, index) {
         var owner = this;
         var val = row[col.property];
         var response = val;
-        var cols = owner.header.filter(x => { return col.property == x.columnName })[0];
-        if (owner.headerformat[col.property]) {
-          if (cols.csharpType == "Boolean") {
-            response = owner.headerformat[col.property].filter(p => { return p.code == (val ? '1' : '0') })[0].name;
-          }
-          if (cols.csharpType == "Int16" || cols.csharpType == "Int32" || cols.csharpType == "Int64") {
-            response = owner.headerformat[col.property].filter(p => { return p.keys == val })[0].name;
-          }
+        if (owner.header.filter(x => { return col.property == x.columnName }).length > 0) {
+          var cols = owner.header.filter(x => { return col.property == x.columnName })[0];
+          if (owner.headerformat[col.property]) {
+            if (cols.csharpType == "Boolean") {
+              response = owner.headerformat[col.property].filter(p => { return p.code == (val ? '1' : '0') })[0].name;
+            }
+            if (cols.csharpType == "Int16" || cols.csharpType == "Int32" || cols.csharpType == "Int64") {
+              response = owner.headerformat[col.property].filter(p => { return p.keys == val })[0].name;
+            }
 
+          }
         }
+      
         return response;
       },
 

@@ -152,7 +152,7 @@
 
       getHeader: function () {
         const owner = this
-        GetHeader(owner.request.TableName).then(response => {
+        GetHeader(owner.request).then(response => {
           owner.header = response.data
         })
       },
