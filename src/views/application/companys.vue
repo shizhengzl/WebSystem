@@ -27,7 +27,7 @@
         <el-table-column label="操作" v-if="index == header.length-1">
           <template slot-scope="scope">
             <el-button type="success" v-if="IsRight ? menus.rightShowModify : menus.showModify" size="small" @click="modify(scope.row)">编辑</el-button>
-            <el-button type="danger"  v-if="IsRight ? menus.rightShowRemove : menus.showRemove" size="small" @click="remove(scope.row)">删除</el-button>
+            <el-button type="danger" v-if="IsRight ? menus.rightShowRemove : menus.showRemove" size="small" @click="remove(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </template>
@@ -36,7 +36,7 @@
     <el-pagination @size-change="handleSizeChange"
                    @current-change="handleCurrentChange"
                    :current-page="request.PageIndex"
-                   :page-sizes="[8, 10, 20, 40]"  v-if="IsRight ? menus.rightShowPage : menus.showPage"
+                   :page-sizes="[8, 10, 20, 40]" v-if="IsRight ? menus.rightShowPage : menus.showPage"
                    :page-size="request.PageSize"
                    layout="total, sizes, prev, pager, next, jumper"
                    :total="request.TotalCount">
@@ -52,11 +52,27 @@
                 <el-input v-model="model[item.columnName]"
                           clearable></el-input>
               </el-form-item>
-              <el-form-item v-if="item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64' "
+
+
+              <el-form-item v-if="(item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64' && item.targetSource !='Enum') "
                             :label="item.columnDescription || item.columnName" :prop="item.columnName">
                 <el-input v-model="model[item.columnName]" typeof="number"
                           clearable></el-input>
               </el-form-item>
+
+              <el-form-item v-if="item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64'  && item.targetSource =='Enum'"
+                            :label="item.columnDescription || item.columnName" :prop="item.columnName">
+                <el-select v-model="model[item.columnName]" placeholder="请选择" filterable>
+                  <el-option v-for="t in headerfilter[item.columnName].json"
+                             :key="t.code"
+                             :label="t.name"
+                             :value="t.code">
+                  </el-option>
+                </el-select>
+              </el-form-item>
+
+
+
               <el-form-item v-else-if="item.csharpType == 'Boolean'" :label="item.columnDescription || item.columnName">
                 <el-switch v-model="model[item.columnName]"
                            active-color="#13ce66"
@@ -79,11 +95,33 @@
                 <el-input v-model="model[header[index+1].columnName]"
                           clearable></el-input>
               </el-form-item>
-              <el-form-item v-if="header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64' "
+
+              <el-form-item v-if="(header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64') &&  header[index+1].targetSource !='Enum' "
                             :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
                 <el-input v-model="model[header[index+1].columnName]" typeof="number"
                           clearable></el-input>
               </el-form-item>
+
+
+              <el-form-item v-if="(header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64') &&  header[index+1].targetSource =='Enum'"
+                            :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
+                <!--<el-input v-model="model[header[index+1].columnName]" typeof="number"
+                          clearable></el-input>-->
+
+
+                <el-select v-model="model[header[index+1].columnName]" placeholder="请选择" filterable> 
+                  <el-option v-for="t in headerfilter[header[index+1].columnName].json"
+                             :key="t.code"
+                             :label="t.name"
+                             :value="t.code">
+                  </el-option>
+                </el-select>
+              </el-form-item>
+
+           
+
+
+
               <el-form-item v-else-if="header[index+1].csharpType == 'Boolean'" :label="header[index+1].columnDescription || header[index+1].columnName">
                 <el-switch v-model="model[header[index+1].columnName]"
                            active-color="#13ce66"
@@ -91,7 +129,7 @@
                 </el-switch>
               </el-form-item>
               <el-form-item v-else-if="header[index+1].csharpType == 'Guid' && !!header[index+1].json" :label="header[index+1].columnDescription || header[index+1].columnName">
-                <el-select v-model="model[header[index+1].columnName]" placeholder="请选择" filterable >
+                <el-select v-model="model[header[index+1].columnName]" placeholder="请选择" filterable>
                   <el-option v-for="t in headerfilter[header[index+1].columnName].json"
                              :key="t[firstToLowwer(header[index+1].bindKey)]"
                              :label="t[firstToLowwer(header[index+1].bindValue)]"
@@ -125,7 +163,7 @@
       },
       ParentKey: {
         Type: String,
-        default:''
+        default: ''
       },
       ParentValue: {
         Type: String,
@@ -137,22 +175,17 @@
         if (!searchvalue)
           return;
         var owner = this;
-        this.request.Model.Filters = [];
-        this.request.Model.Filters.push({
-          "Field": "CompanysId",
-          "Value": owner.$store.getters.company,
-          "Operator": "Equals"
-        }); 
-        var index = 1;
+     
+        var index = 0;
         if (owner.ParentKey && owner.ParentValue) {
-          index++; 
+          index++;
           this.request.Model.Filters.push({
             "Field": owner.ParentKey,
             "Value": owner.ParentValue,
             "Operator": "Equals"
           });
-        } 
-         
+        }
+
         this.request.Model.Filters.push({
           "Logic": "Or",
           "Filters": [],
@@ -170,18 +203,18 @@
       }
     },
     // 初始化
-    mounted() { 
-      this.menus = this.$route.meta.menusettins; 
-      if (!this.IsRight) { 
+    mounted() {
+      this.menus = this.$route.meta.menusettins;
+      if (!this.IsRight) {
         this.request.TableName = this.menus.sourceValue
         this.request.PageSize = this.menus.showPage ? this.menus.pageSize : 100000;
       }
-        
+
       else {
         this.request.TableName = this.menus.rightSourceValue
-        this.ParentKey = this.menus.sourceValue + 'Id' 
+        this.ParentKey = this.menus.sourceValue + 'Id'
         this.request.PageSize = this.menus.rightShowPage ? this.menus.rightPageSize : 100000;
-      } 
+      }
       this.request.filter = this.menus.id;
       this.getHeader();
       this.getList();
@@ -192,7 +225,7 @@
         validfun: {
           IsPhone: IsPhone,
           IsEmail: IsEmail
-        }, 
+        },
         menus: {},
         headerfilter: {},
         // 展示列表头部
@@ -212,7 +245,7 @@
         // 查询条件
         filter: '',
         // 查询
-        request: { 
+        request: {
           TableName: '',
           Model: {
             "Logic": "And",
@@ -280,15 +313,18 @@
       },
 
       getHeader: function () {
-        const owner = this 
+        const owner = this
         GetHeader(owner.request).then(response => {
           owner.header = response.data;
           owner.header.forEach(x => {
             if (x.json) {
               owner.headerfilter[x.columnName] = { bindKey: x.bindKey, bindValue: x.bindValue, json: JSON.parse(x.json) };
+              if (x.targetSource == "Enum") {
+                owner.headerfilter[x.columnName].json.forEach(function (item, index) { item.code = parseInt(item.code); });
+              } 
             }
-          }); 
-          if (response.rules) { 
+          });
+          if (response.rules) {
             owner.rules = JSON.parse(response.rules)
             for (var s in owner.rules) {
               var rule = owner.rules[s];
@@ -305,10 +341,7 @@
         })
       },
       getList: function () {
-        const owner = this 
-        owner.request.Model.Filters = [owner.request.Model.Filters[0]];
-        owner.request.Model.Filters[0].Value = owner.$store.getters.company;
- 
+        const owner = this  
         if (owner.ParentKey && owner.ParentValue) {
           owner.request.Model.Filters.push({
             "Field": owner.ParentKey,
@@ -316,9 +349,7 @@
             "Operator": "Equals"
           });
         }
-        owner.request.Model = JSON.stringify(owner.request.Model); 
-    
-
+        owner.request.Model = JSON.stringify(owner.request.Model);  
         GetList(owner.request).then(response => {
           owner.data = (response.data)
           owner.request.Model = JSON.parse(owner.request.Model)
@@ -326,25 +357,29 @@
         })
       },
 
-      globalformat: function (row, col, cell, index) {
+      globalformat: function (row, col, cell, index) { 
         var owner = this;
-        var val = row[col.property];
+        var val = "";
+        if (row[col.property] || row[col.property] ==0)
+          val = row[col.property].toString()
         var response = val;
         var item = owner.header.filter(o => { return o.columnName == col.property })[0];
         if (item.sourceValue) {
           var arr = JSON.parse(item.json);
           if (arr.length > 0) {
-            if (item.csharpType == "Boolean") {
+            if (item.csharpType == "Boolean")
+            {
               var res = arr.filter(p => { return p.code == (val ? '1' : '0') });
               if (res.length > 0) {
                 response = res[0].name;
               }
             }
             // 处理绑定的
-            if (item.csharpType == "Guid") {
+            if (item.csharpType == "Guid")
+            {
               if (item.bindKey && item.bindValue) {
                 var key = firstToLowwer(item.bindKey);
-                var name = firstToLowwer(item.bindValue); 
+                var name = firstToLowwer(item.bindValue);
                 var res = arr.filter(p => { return p[key].toUpperCase() == val.toUpperCase() });
                 if (res.length > 0) {
                   response = res[0][name];
@@ -352,14 +387,21 @@
                 else
                   response = "";
               }
+            } 
+            // 处理枚举
+            if (item.targetSource == "Enum") { 
+              var res = arr.filter(p => { return p["code"].toUpperCase() == val.toUpperCase() }); 
+              if (res.length > 0) {
+                response = res[0]['name']; 
+              }
+              else
+                response = "";
             }
           }
         }
-        else {
-
-          if (item.csharpType == "DateTime") {
+        else { 
+          if (item.csharpType == "DateTime") 
             response = formatTimeToStr(val, "yyyy-MM-dd hh:mm:ss");
-          }
         }
         return response;
       },

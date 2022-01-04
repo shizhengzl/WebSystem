@@ -147,9 +147,9 @@
             <el-form-item label="数据源值">
               <el-select v-model="model.sourceValue" clearable placeholder="请选择" style="width:100%;">
                 <el-option v-for="item in tables"
-                           :key="item.name"
-                           :label="item.description"
-                           :value="item.name">
+                           :key="item.code"
+                           :label="item.name"
+                           :value="item.code">
                 </el-option>
               </el-select>
 
@@ -177,9 +177,9 @@
             <el-form-item label="右数据源值">
               <el-select v-model="model.rightSourceValue" clearable placeholder="请选择" style="width:100%;" @change="shoucolumns">
                 <el-option v-for="item in tables"
-                           :key="item.name"
-                           :label="item.description"
-                           :value="item.name">
+                           :key="item.code"
+                           :label="item.name"
+                           :value="item.code">
                 </el-option>
               </el-select>
               <el-link type="success" round v-if="model.rightSourceValue" @click="setlistright(model.id,model.rightSourceValue)"
@@ -341,9 +341,9 @@
                 <el-form-item label="数据源值">
                   <el-select v-model="showmodel.sourceValue" clearable placeholder="请选择" style="width:100%;" @change="shoucolumns">
                     <el-option v-for="item in tables"
-                               :key="item.name"
-                               :label="item.description"
-                               :value="item.name">
+                               :key="item.code"
+                               :label="item.name"
+                               :value="item.code">
                     </el-option>
                   </el-select>
                 </el-form-item>
@@ -645,7 +645,7 @@
 <script>
   import { GetSupperMenus, GetParentMenus } from '@/api/menus'
   import { Loading } from 'element-ui';
-  import { GetHeader, GetTables, Save, Remove, GetList, GetCurrentColumns } from '@/api/common'
+  import { GetHeader, GetTables, Save, Remove, GetList, GetCurrentColumns, GetEnums } from '@/api/common'
   export default {
     // 初始化
     mounted() {
@@ -689,6 +689,9 @@
         tragetsource: [
           {
             keys: '0', name: '无'
+          },
+          {
+            keys: 'Enum', name: '枚举'
           },
           {
             keys: 'Table', name: '表'
@@ -774,10 +777,15 @@
         })
       },
       showmodelchange: function (row) {
+        
         if (row == "BaseData")
           this.tables = this.basedata;
         if (row == "Table")
           this.GetTables();
+        if (row == "Enum") { 
+          this.GetEnums();
+        }
+          
       },
       showSort: function (col, desc) {
         this.request.Sort = col.prop;
@@ -975,7 +983,12 @@
           owner.tables = response.data
         })
       },
-
+      GetEnums: function () { 
+        const owner = this 
+        GetEnums({}).then(response => {
+          owner.tables = response.data
+        })
+      },
 
     }
   }

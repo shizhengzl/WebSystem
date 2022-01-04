@@ -179,7 +179,9 @@
       }
     },
     // 初始化
-    mounted() { 
+    mounted() {
+      this.menus = this.$route.meta.menusettins;
+      this.request.filter = this.menus.id;
       this.getHeader();
       this.getList();
     },

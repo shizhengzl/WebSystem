@@ -2,7 +2,7 @@
 <template>
   <div class="app-container">
     <el-container>
-      <aside width="400px">
+      <aside style="width:500px;">
         <div style="margin-bottom:5px;">
           <el-button type="success" icon="el-icon-circle-plus-outline" @click="create()" v-if="menus.showCreate">添加</el-button>
           <el-input v-model="filter"
@@ -33,7 +33,7 @@
         </el-table>
       </aside>
       <el-main> 
-          <commongrid v-if="ParentValue" IsRight="true" ></commongrid>
+          <commongrid v-if="ParentValue" IsRight="true" :ParentValue="ParentValue" ></commongrid>
       </el-main>
     </el-container>
 
@@ -140,7 +140,7 @@
     // 方法
     methods: {
       handleTableChange: function (row) {
-        this.fatherrow = row;
+        //this.fatherrow = row;
         this.$refs.fathertable.clearSelection();
         this.$refs.fathertable.toggleRowSelection(row);
         this.ParentValue = '';
@@ -240,6 +240,7 @@
             }
 
           }
+
         }
         else {
 

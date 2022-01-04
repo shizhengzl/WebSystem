@@ -107,3 +107,20 @@ export function ModifyTableExtendedproperty(rq) {
     data: rq
   })
 }
+
+
+export function GetEnums(rq) {
+  return request({
+    url: '/api/Common/GetEnums',
+    method: 'post',
+    data: rq
+  })
+}
+
+export function GetEnum(rq) {
+  return request({
+    url: '/api/Common/GetEnum',
+    method: 'post',
+    data: rq
+  })
+}

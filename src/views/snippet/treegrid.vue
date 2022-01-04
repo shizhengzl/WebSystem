@@ -4,14 +4,16 @@
     <el-container>
       <aside width="400px">
         <div style="margin-bottom:5px;">
-          <el-button type="success" icon="el-icon-circle-plus-outline" @click="create()">添加</el-button>
+          <el-button type="success" icon="el-icon-circle-plus-outline" @click="create()"  v-if="menus.showCreate">添加</el-button>
           <el-input v-model="filter"
                     placeholder="请输入内容"
                     style="width:220px;margin-left:5px;"
                     prefix-icon="el-icon-search" />
         </div>
 
-        <el-table :data="data" @sort-change="Sort" row-key="id" :tree-props="{children: 'children'}">
+        <el-table :data="data" @sort-change="Sort" row-key="id" ref="fathertable"
+                   highlight-current-row @current-change="handleTableChange"
+                  :tree-props="{children: 'children'}">
           <el-table-column type="selection" width="55">
           </el-table-column>
 
@@ -27,14 +29,15 @@
 
             <el-table-column label="操作" v-if="index == header.length-1">
               <template slot-scope="scope">
-                <el-button type="success" size="small" @click="modify(scope.row)">编辑</el-button>
-                <el-button type="danger" size="small" @click="remove(scope.row)">删除</el-button>
+                <el-button type="success" size="small"  v-if="menus.showModify" @click="modify(scope.row)">编辑</el-button>
+                <el-button type="danger" size="small"  v-if="menus.showRemove" @click="remove(scope.row)">删除</el-button>
               </template>
             </el-table-column>
           </template>
         </el-table>
 
         <el-pagination @size-change="handleSizeChange"
+                         v-if="IsRight ? menus.rightShowPage : menus.showPage"
                        @current-change="handleCurrentChange"
                        :current-page="request.PageIndex"
                        :page-sizes="[8, 10, 20, 40]"
@@ -124,7 +127,7 @@
         </el-dialog>
       </aside>
       <el-main>
-        <commongrid v-if="ParentValue" IsRight="true"></commongrid>
+        <commongrid v-if="ParentValue" IsRight="true"  :ParentValue="ParentValue"></commongrid>
       </el-main>
     </el-container>
   </div>
@@ -133,7 +136,11 @@
   import { GetHeader, GetTreeList, Save, Remove, GetCurrentColumns } from '@/api/common'
   import { IsPhone, IsEmail, firstToLowwer } from '@/utils/validate'
   import { formatTimeToStr } from '@/utils/dateformat'
+  import commongrid from '@/views/snippet/grid.vue'
   export default {
+    components: {
+      commongrid
+    },
     watch: {
       filter: function (searchvalue) {
         if (!searchvalue)
@@ -165,13 +172,23 @@
     },
     // 初始化
     mounted() {
+
+      if (!this.TableName) {
+        this.request.TableName = this.$route.meta.menusettins.sourceValue
+      }
+      else {
+        this.request.TableName = this.TableName
+      }
       this.menus = this.$route.meta.menusettins;
-      this.request.filter = this.menus.id;
+      this.request.PageSize = this.menus.showPage ? this.menus.pageSize : 100000; 
+      this.request.filter = this.menus.id;  
       this.getHeader();
       this.getList();
     },
     data() {
       return {
+        menus: {},
+        ParentValue: 'd',
         formatdata: {},
         validfun: {
           IsPhone: IsPhone,
@@ -195,7 +212,7 @@
         filter: '',
         // 查询
         request: {
-          TableName: this.$route.path.replace('/', ''),
+          TableName: "",
           Model: {
             "Logic": "And",
             "Filters": [
@@ -215,6 +232,14 @@
     },
     // 方法
     methods: {
+      handleTableChange: function (row) { 
+        this.$refs.fathertable.clearSelection();
+        this.$refs.fathertable.toggleRowSelection(row);
+        this.ParentValue = '';
+        this.$nextTick(() => {
+          this.ParentValue = row.id
+        })
+      },
       firstToLowwer: function (str) {
         return firstToLowwer(str)
       },

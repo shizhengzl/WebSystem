@@ -52,11 +52,32 @@
                 <el-input v-model="model[item.columnName]"
                           clearable></el-input>
               </el-form-item>
-              <el-form-item v-if="item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64' "
+              <!--<el-form-item v-if="item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64' "
+                :label="item.columnDescription || item.columnName" :prop="item.columnName">
+    <el-input v-model="model[item.columnName]" typeof="number"
+              clearable></el-input>
+  </el-form-item>-->
+
+              <el-form-item v-if="(item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64' && item.targetSource !='Enum') "
                             :label="item.columnDescription || item.columnName" :prop="item.columnName">
                 <el-input v-model="model[item.columnName]" typeof="number"
                           clearable></el-input>
               </el-form-item>
+
+              <el-form-item v-if="item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64'  && item.targetSource =='Enum'"
+                            :label="item.columnDescription || item.columnName" :prop="item.columnName">
+                <el-select v-model="model[item.columnName]" placeholder="请选择" filterable>
+                  <el-option v-for="t in headerfilter[item.columnName].json"
+                             :key="t.code"
+                             :label="t.name"
+                             :value="t.code">
+                  </el-option>
+                </el-select>
+              </el-form-item>
+
+
+
+
               <el-form-item v-else-if="item.csharpType == 'Boolean'" :label="item.columnDescription || item.columnName">
                 <el-switch v-model="model[item.columnName]"
                            active-color="#13ce66"
@@ -79,11 +100,33 @@
                 <el-input v-model="model[header[index+1].columnName]"
                           clearable></el-input>
               </el-form-item>
-              <el-form-item v-if="header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64' "
+              <!--<el-form-item v-if="header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64' "
+                :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
+    <el-input v-model="model[header[index+1].columnName]" typeof="number"
+              clearable></el-input>
+  </el-form-item>-->
+
+
+              <el-form-item v-if="(header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64') &&  header[index+1].targetSource !='Enum' "
                             :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
                 <el-input v-model="model[header[index+1].columnName]" typeof="number"
                           clearable></el-input>
               </el-form-item>
+
+
+              <el-form-item v-if="(header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64') &&  header[index+1].targetSource =='Enum'"
+                            :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
+                <el-select v-model="model[header[index+1].columnName]" placeholder="请选择" filterable>
+                  <el-option v-for="t in headerfilter[header[index+1].columnName].json"
+                             :key="t.code"
+                             :label="t.name"
+                             :value="t.code">
+                  </el-option>
+                </el-select>
+              </el-form-item>
+
+
+
               <el-form-item v-else-if="header[index+1].csharpType == 'Boolean'" :label="header[index+1].columnDescription || header[index+1].columnName">
                 <el-switch v-model="model[header[index+1].columnName]"
                            active-color="#13ce66"
@@ -91,7 +134,7 @@
                 </el-switch>
               </el-form-item>
               <el-form-item v-else-if="header[index+1].csharpType == 'Guid' && !!header[index+1].json" :label="header[index+1].columnDescription || header[index+1].columnName">
-                <el-select v-model="model[header[index+1].columnName]" placeholder="请选择" filterable >
+                <el-select v-model="model[header[index+1].columnName]" placeholder="请选择" filterable>
                   <el-option v-for="t in headerfilter[header[index+1].columnName].json"
                              :key="t[firstToLowwer(header[index+1].bindKey)]"
                              :label="t[firstToLowwer(header[index+1].bindValue)]"
@@ -286,8 +329,11 @@
           owner.header.forEach(x => {
             if (x.json) {
               owner.headerfilter[x.columnName] = { bindKey: x.bindKey, bindValue: x.bindValue, json: JSON.parse(x.json) };
+              if (x.targetSource == "Enum") {
+                owner.headerfilter[x.columnName].json.forEach(function (item, index) { item.code = parseInt(item.code); });
+              }
             }
-          }); 
+          });
           if (response.rules) { 
             owner.rules = JSON.parse(response.rules)
             for (var s in owner.rules) {

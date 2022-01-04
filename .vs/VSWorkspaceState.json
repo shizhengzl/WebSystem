@@ -2,12 +2,14 @@
   "ExpandedNodes": [
     "",
     "\\src",
-    "\\src\\api",
+    "\\src\\store",
     "\\src\\store\\modules",
-    "\\src\\utils",
+    "\\src\\styles",
     "\\src\\views",
-    "\\src\\views\\menus"
+    "\\src\\views\\application",
+    "\\src\\views\\menus",
+    "\\src\\views\\snippet",
+    "\\src\\views\\soft"
   ],
-  "SelectedNode": "\\src\\utils\\validate.js",
   "PreviewInSolutionExplorer": false
 }
