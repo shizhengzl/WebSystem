@@ -2,11 +2,9 @@
   "ExpandedNodes": [
     "",
     "\\src",
+    "\\src\\api",
     "\\src\\store",
-    "\\src\\store\\modules",
-    "\\src\\styles",
     "\\src\\views",
-    "\\src\\views\\application",
     "\\src\\views\\menus",
     "\\src\\views\\snippet",
     "\\src\\views\\soft"

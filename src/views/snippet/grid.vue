@@ -177,10 +177,13 @@
         this.request.PageSize = this.menus.showPage ? this.menus.pageSize : 100000;
       }
         
-      else {
+      else { 
         this.request.TableName = this.menus.rightSourceValue
         this.ParentKey = this.menus.sourceValue + 'Id' 
         this.request.PageSize = this.menus.rightShowPage ? this.menus.rightPageSize : 100000;
+
+        var fl = firstToLowwer(this.ParentKey); 
+        this.model[fl] = this.ParentValue;
       } 
       this.request.filter = this.menus.id;
       this.getHeader();
@@ -239,7 +242,7 @@
       remove: function (row) {
         const owner = this
         let saverequest = {
-          TableName: owner.TableName,
+          TableName: owner.request.TableName,
           Model: row
         }
         Remove(saverequest).then(response => {
@@ -252,7 +255,7 @@
         this.model = {}
       },
       create: function () {
-        this.formdialog = true;
+        this.formdialog = true; 
       },
       modify: function (row) {
         this.model = row;

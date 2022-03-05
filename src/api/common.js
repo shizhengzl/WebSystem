@@ -8,11 +8,32 @@ export function GetHeader(rq) {
   })
 }
 
-export function GetList(rq) { 
+export function GetList(rq, table, companyid,hasall) {
+  var rqs = rq;
+  if (!rqs) {
+    rqs= {
+        TableName: table,
+        Model: {
+        "Logic": "And",
+          "Filters": [
+            {
+              "Field": "CompanysId",
+              "Value": companyid,
+              "Operator": "Equals"
+            }
+          ]
+      },
+      PageSize: hasall ? 100000 : 8,
+      PageIndex: 1,
+      TotalCount: 0,
+      Sort: 'Id'
+    }
+    rqs.Model = JSON.stringify(rqs.Model);
+  }
   return request({
     url: '/api/Common/GetList',
     method: 'post',
-    data:rq
+    data: rqs
   })
 }
 

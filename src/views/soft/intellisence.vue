@@ -49,7 +49,7 @@
             <el-col :span="10">
               <el-form-item v-if="item.csharpType == 'String' "
                             :label="item.columnDescription || item.columnName" :prop="item.columnName">
-                <el-input v-model="model[item.columnName]"
+                <el-input v-model="model[item.columnName]" type="textarea"
                           clearable></el-input>
               </el-form-item>
               <!--<el-form-item v-if="item.csharpType == 'Int32' || item.csharpType == 'Int16' || item.csharpType == 'Int64' "
@@ -97,7 +97,7 @@
             <el-col :span="10" v-if="index < header.length -1 ">
               <el-form-item v-if="header[index+1].csharpType == 'String' "
                             :label="header[index+1].columnDescription || header[index+1].columnName" :prop="header[index+1].columnName">
-                <el-input v-model="model[header[index+1].columnName]"
+                <el-input v-model="model[header[index+1].columnName]" type="textarea"
                           clearable></el-input>
               </el-form-item>
               <!--<el-form-item v-if="header[index+1].csharpType == 'Int32' || header[index+1].csharpType == 'Int16' || header[index+1].csharpType == 'Int64' "
@@ -256,7 +256,7 @@
         filter: '',
         // 查询
         request: { 
-          TableName: '',
+          TableName: 'Intellisence',
           Model: {
             "Logic": "And",
             "Filters": [
@@ -282,7 +282,7 @@
       remove: function (row) {
         const owner = this
         let saverequest = {
-          TableName: owner.TableName,
+          TableName: owner.request.TableName,
           Model: row
         }
         Remove(saverequest).then(response => {

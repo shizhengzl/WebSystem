@@ -1,14 +1,20 @@
 import request from '@/utils/request' 
 
-export function GetSupperMenus(data) {
+export function GetSupperMenus() {
   return request({
     url: '/api/Menus/GetSupperMenus',
     method: 'post'
   })
 }
-export function GetParentMenus(data) {
+export function GetParentMenus() {
   return request({
     url: '/api/Menus/GetParentMenus',
+    method: 'post'
+  })
+}
+export function GetCompanyMenus() {
+  return request({
+    url: '/api/Menus/GetCompanyMenus',
     method: 'post'
   })
 }

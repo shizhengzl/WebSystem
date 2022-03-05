@@ -53,7 +53,20 @@ export const constantRoutes = [
       component: () => import('@/views/dashboard/index'),
       meta: { title: 'Dashboard', icon: 'dashboard' }
     }]
-  }//,
+  },
+
+  //{
+  //  path: '/',
+  //  component: Layout,
+  //  redirect: '/datafileld',
+  //  children: [{
+  //    path: 'datafield',
+  //    name: 'datafield',
+  //    component: () => import('@/views/soft/datafileld'),
+  //    meta: { title: '数据库字典', icon: 'dashboard' }
+  //  }]
+  //}
+  //,
 
   //{
   //  path: '/example',

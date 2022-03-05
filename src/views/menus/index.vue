@@ -643,14 +643,14 @@
   </div>
 </template>
 <script>
-  import { GetSupperMenus, GetParentMenus } from '@/api/menus'
+  import { GetCompanyMenus, GetParentMenus } from '@/api/menus'
   import { Loading } from 'element-ui';
   import { GetHeader, GetTables, Save, Remove, GetList, GetCurrentColumns, GetEnums } from '@/api/common'
   export default {
     // 初始化
     mounted() {
 
-      this.GetSupperMenus();
+      this.GetCompanyMenus();
       this.GetTables();
       this.GetParentMenus();
       this.getBaseData();
@@ -955,7 +955,7 @@
         }
         Remove(saverequest).then(response => {
           if (response.success) {
-            owner.GetSupperMenus();
+            owner.GetCompanyMenus();
           }
         })
       },
@@ -965,9 +965,9 @@
           owner.header = response.data
         })
       },
-      GetSupperMenus: function () {
+      GetCompanyMenus: function () {
         const owner = this
-        GetSupperMenus().then(response => {
+        GetCompanyMenus().then(response => {
           owner.data = response.data
         })
       },
